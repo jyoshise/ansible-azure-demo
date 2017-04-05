@@ -1,0 +1,25 @@
+---
+- name: Azure VMをOSタイプ毎にグルーピング
+  hosts: azure         # グルーピング実施をAzure上のVMに限定
+  gather_facts: false  # gather_facts によるVMへの自動ログインをキャンセル
+  tasks:
+    - name: os_disk.operating_system_typeの値でグループ分け
+      group_by:
+        key: "{{ os_disk.operating_system_type }}"
+
+- name: Linuxマシンをアップデート
+  hosts: Linux
+  become: true
+  tasks:
+    - name: インストール済みopenssl関連パッケージを取得
+      command: rpm -qa "openssl*"
+      args:
+        warn: false
+      changed_when: false
+      register: installed_rpms
+
+    - name: openssl関連パッケージをアップグレード
+      yum:
+        name: "{{ item }}"
+        state: latest
+      with_items: "{{ installed_rpms.stdout_lines }}"

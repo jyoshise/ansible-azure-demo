@@ -33,12 +33,37 @@
     image:
       publisher: MicrosoftWindowsServer
       offer: WindowsServer
-      sku: Windows-Server-Technical-Preview
+      sku: 2016-Nano-Server
       version: latest
     tags:
       ansible-target: "true"
   register: azure_win_vm_status
 
-- name: 作成した仮想マシンのパブリックIPを表示
+- name: RHEL仮想マシンを作成
+  azure_rm_virtualmachine:
+    name: ansiblelinuxvm01
+    resource_group: TestingAnsible
+    vm_size: Standard_D1
+    public_ip_allocation_method: Dynamic
+    admin_username: MyAdminName
+    admin_password: MyAdminP@ssw0rd
+    open_ports:
+      - 22
+      - 80
+      - 443
+    os_type: Linux
+    image:
+      publisher: RedHat
+      offer: RHEL
+      sku: 7.3
+      version: latest
+    tags:
+      ansible-target: "true"
+  register: azure_linux_vm_status
+
+- name: 作成したwindows仮想マシンのパブリックIPを表示
   debug:
     msg: "Public IP Address: {{ azure_win_vm_status.ansible_facts.azure_vm.properties.networkProfile.networkInterfaces.0.properties.ipConfigurations.0.properties.publicIPAddress.properties.ipAddress }}"
+- name: 作成したlinux仮想マシンのパブリックIPを表示
+  debug:
+    msg: "Public IP Address: {{ azure_linux_vm_status.ansible_facts.azure_vm.properties.networkProfile.networkInterfaces.0.properties.ipConfigurations.0.properties.publicIPAddress.properties.ipAddress }}"
